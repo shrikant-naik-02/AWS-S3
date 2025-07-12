@@ -50,7 +50,7 @@ public class S3Service {
         String objectKey = S3_FOLDER_PREFIX + fileHash;
         log.debug("Generated S3 object key: {}", objectKey);
 
-        if (commonAWSOp.doesObjectExists(objectKey)) {
+        if (commonAWSOp.doesObjectExist(objectKey)) {
             throw new FileAlreadyExistsException("File already exists with key: " + objectKey);
         }
 
@@ -69,7 +69,7 @@ public class S3Service {
             throw new HashMismatchException("Hash mismatch — please upload the original file used to generate the URL.");
         }
 
-        if (commonAWSOp.doesObjectExists(objectKey)) {
+        if (commonAWSOp.doesObjectExist(objectKey)) {
             throw new FileAlreadyExistsException("File already exists with key: " + objectKey);
         }
 
@@ -78,7 +78,7 @@ public class S3Service {
     }
 
     private String generatePresignedUrlForDownload(String objectKey) {
-        if (!commonAWSOp.doesObjectExists(objectKey)) {
+        if (!commonAWSOp.doesObjectExist(objectKey)) {
             log.debug("File not found with key: {}", objectKey);
             throw new FileAlreadyExistsException("File not present with key: " + objectKey);
         }
@@ -90,7 +90,7 @@ public class S3Service {
         Map<String, String> parsedData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
         String objectKey = parsedData.get("objName");
 
-        if (!commonAWSOp.doesObjectExists(objectKey)) {
+        if (!commonAWSOp.doesObjectExist(objectKey)) {
             log.debug("File not found with key: {}", objectKey);
             throw new NoSuchFilePresent("File not found with key: " + objectKey);
         }
