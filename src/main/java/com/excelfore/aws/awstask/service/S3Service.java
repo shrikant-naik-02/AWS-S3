@@ -1,13 +1,13 @@
 package com.excelfore.aws.awstask.service;
 
 import com.excelfore.aws.awstask.common.CommonAWSOp;
-import com.excelfore.aws.awstask.dto.PresignedUrlResponse;
 import com.excelfore.aws.awstask.exception.*;
 import com.excelfore.aws.awstask.util.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.Map;
 
 @Service
@@ -16,22 +16,21 @@ import java.util.Map;
 public class S3Service {
 
     private final CommonAWSOp commonAWSOp;
-
-    private static final String FOLDER_NAME = "myBucket/";
+    private static final String S3_FOLDER_PREFIX = "myBucket/";
 
     public String uploadFile(MultipartFile file) {
-        PresignedUrlResponse uploadUrl = getValidPresignedUrlForUpload(file);
-        return uploadFileWithPresign(file, uploadUrl.getUrl());
+        String presignedUrl = generatePresignedUrlForUpload(file);
+        return uploadFileWithPresignedUrl(file, presignedUrl);
     }
 
-    public byte[] downloadFile(String objectName) {
-        PresignedUrlResponse downloadUrl = getValidPresignedUrlForDownload(objectName);
-        return downloadFileWithPresign(downloadUrl.getUrl());
+    public byte[] downloadFile(String objectKey) {
+        String presignedUrl = generatePresignedUrlForDownload(objectKey);
+        return downloadFileWithPresignedUrl(presignedUrl);
     }
 
-//    ------------------------------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------
 
-    private PresignedUrlResponse getValidPresignedUrlForUpload(MultipartFile file) {
+    private String generatePresignedUrlForUpload(MultipartFile file) {
         if (file.isEmpty() || file.getSize() == 0) {
             throw new EmptyFileException("File is null or empty");
         }
@@ -41,63 +40,59 @@ public class S3Service {
         }
 
         String originalFileName = file.getOriginalFilename();
-        assert originalFileName != null;
-        if (!FileUtil.isFileNameValid(originalFileName)) {
+        if (originalFileName == null || !FileUtil.isFileNameValid(originalFileName)) {
             throw new InvalidFileNameException("Filename must contain at least one letter before the extension");
         }
 
-        String hashHex = FileUtil.computeSHA256Hash(file);
-        String key = FOLDER_NAME + hashHex;
-        log.debug("Generated S3 object key: {}", key);
+        String fileHash = FileUtil.computeSHA256Hash(file);
+        String objectKey = S3_FOLDER_PREFIX + fileHash;
+        log.debug("Generated S3 object key: {}", objectKey);
 
-        if (commonAWSOp.doesObjectExists(key)) {
-            throw new FileAlreadyExistsException("File already exists with name: " + key);
+        if (commonAWSOp.doesObjectExists(objectKey)) {
+            throw new FileAlreadyExistsException("File already exists with key: " + objectKey);
         }
 
-        String url = commonAWSOp.generatePresignedUrl(key, true);
-        return new PresignedUrlResponse("Upload", url, "5Min", true);
+        return commonAWSOp.generatePresignedUrl(objectKey, true); // true = upload
     }
 
-    private String uploadFileWithPresign(MultipartFile file, String presignedUrl) {
-        String currentFileHash = FileUtil.computeSHA256Hash(file);
-        Map<String, String> urlData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
-        final String shaKey = urlData.get("shaKey");
-        final String objName = urlData.get("objName");
+    private String uploadFileWithPresignedUrl(MultipartFile file, String presignedUrl) {
+        String fileHash = FileUtil.computeSHA256Hash(file);
+        Map<String, String> parsedData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
 
-        if (!currentFileHash.equalsIgnoreCase(shaKey)) {
-            log.debug("mismatch");
+        String expectedHash = parsedData.get("shaKey");
+        String objectKey = parsedData.get("objName");
+
+        if (!fileHash.equalsIgnoreCase(expectedHash)) {
+            log.debug("Hash mismatch: expected {}, got {}", expectedHash, fileHash);
             throw new HashMismatchException("Hash mismatch — please upload the original file used to generate the URL.");
         }
 
-        if (commonAWSOp.doesObjectExists(objName)) {
-            throw new FileAlreadyExistsException("File already exists with name: " + objName);
+        if (commonAWSOp.doesObjectExists(objectKey)) {
+            throw new FileAlreadyExistsException("File already exists with key: " + objectKey);
         }
 
         commonAWSOp.uploadFileWithPresignedUrl(file, presignedUrl);
-        return objName;
+        return objectKey;
     }
 
-    private PresignedUrlResponse getValidPresignedUrlForDownload(String objectName) {
-        if (!commonAWSOp.doesObjectExists(objectName)) {
-            log.debug("File Not Exist There With Name {}", objectName);
-            throw new FileAlreadyExistsException("File Not Present There with name: " + objectName);
+    private String generatePresignedUrlForDownload(String objectKey) {
+        if (!commonAWSOp.doesObjectExists(objectKey)) {
+            log.debug("File not found with key: {}", objectKey);
+            throw new FileAlreadyExistsException("File not present with key: " + objectKey);
         }
 
-        String url = commonAWSOp.generatePresignedUrl(objectName, false);
-        return new PresignedUrlResponse("Download", url, "5Min", true);
+        return commonAWSOp.generatePresignedUrl(objectKey, false); // false = download
     }
 
-    private byte[] downloadFileWithPresign(String presignedUrl) {
-        Map<String, String> urlData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
-        final String objName = urlData.get("objName");
+    private byte[] downloadFileWithPresignedUrl(String presignedUrl) {
+        Map<String, String> parsedData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
+        String objectKey = parsedData.get("objName");
 
-        if (!commonAWSOp.doesObjectExists(objName)) {
-            log.debug("File Already There With Name {}", objName);
-            throw new NoSuchFilePresent("File Not exists with name: " + objName);
+        if (!commonAWSOp.doesObjectExists(objectKey)) {
+            log.debug("File not found with key: {}", objectKey);
+            throw new NoSuchFilePresent("File not found with key: " + objectKey);
         }
 
         return commonAWSOp.downloadFileWithPresignedUrl(presignedUrl);
     }
-
-
 }
