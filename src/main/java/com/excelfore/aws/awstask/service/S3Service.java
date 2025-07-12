@@ -30,8 +30,9 @@ public class S3Service {
     @Value("${aws.s3.bucket}")
     private String bucket;
 
+    // Existing methods remain unchanged...
+
     public List<String> listOfObjectKeyName(Optional<String> startWith, Optional<String> endWith) {
-        // Build request with prefix if available
         ListObjectsV2Request.Builder requestBuilder = ListObjectsV2Request.builder()
                 .bucket(bucket);
 
@@ -51,9 +52,8 @@ public class S3Service {
     }
 
     public PresignedUrlResponse getValidPresignedUrlForUpload(MultipartFile file) {
-
-        if (file.isEmpty() || file.getSize()==0){
-           throw new EmptyFileException("File is null or empty");
+        if (file.isEmpty() || file.getSize() == 0) {
+            throw new EmptyFileException("File is null or empty");
         }
 
         if (file.getSize() > FileUtil.mbToBytes(1)) {
@@ -61,14 +61,12 @@ public class S3Service {
         }
 
         String originalFileName = file.getOriginalFilename();
-
         assert originalFileName != null;
         if (!FileUtil.isFileNameValid(originalFileName)) {
-            throw new InvalidFileNameException("Filename must contain at least one letter before the extension"); // checked
+            throw new InvalidFileNameException("Filename must contain at least one letter before the extension");
         }
 
         String hashHex = FileUtil.computeSHA256Hash(file);
-
         String key = FOLDER_NAME + hashHex;
         log.debug("Generated S3 object key: {}", key);
 
@@ -77,19 +75,12 @@ public class S3Service {
         }
 
         String url = commonAWSOp.generatePresignedUrl(key, true);
-        return new PresignedUrlResponse(
-                "Upload",
-                url,
-                "5Min",
-                true
-        );
-
+        return new PresignedUrlResponse("Upload", url, "5Min", true);
     }
 
     public String uploadFileWithPresign(MultipartFile file, String presignedUrl) {
         String currentFileHash = FileUtil.computeSHA256Hash(file);
-
-        Map<String,String> urlData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
+        Map<String, String> urlData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
         final String shaKey = urlData.get("shaKey");
         final String objName = urlData.get("objName");
 
@@ -103,31 +94,21 @@ public class S3Service {
         }
 
         commonAWSOp.uploadFileWithPresignedUrl(file, presignedUrl);
-
         return objName;
     }
 
     public PresignedUrlResponse getValidPresignedUrlForDownload(String objectName) {
-
         if (!commonAWSOp.doesObjectExists(objectName)) {
             log.debug("File Not Exist There With Name {}", objectName);
             throw new FileAlreadyExistsException("File Not Present There with name: " + objectName);
         }
 
         String url = commonAWSOp.generatePresignedUrl(objectName, false);
-
-        return new PresignedUrlResponse(
-                "Download",
-                url,
-                "5Min",
-                true
-        );
-
+        return new PresignedUrlResponse("Download", url, "5Min", true);
     }
 
     public byte[] downloadFileWithPresign(String presignedUrl) {
-
-        Map<String,String> urlData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
+        Map<String, String> urlData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
         final String objName = urlData.get("objName");
 
         if (!commonAWSOp.doesObjectExists(objName)) {
@@ -136,7 +117,17 @@ public class S3Service {
         }
 
         return commonAWSOp.downloadFileWithPresignedUrl(presignedUrl);
-
     }
 
+    // 🔽 NEW METHOD 1: uploadFile - no presigned URL from caller
+    public String uploadFile(MultipartFile file) {
+        PresignedUrlResponse uploadUrl = getValidPresignedUrlForUpload(file);
+        return uploadFileWithPresign(file, uploadUrl.getUrl());
+    }
+
+    // 🔽 NEW METHOD 2: downloadFile - only by objectName
+    public byte[] downloadFile(String objectName) {
+        PresignedUrlResponse downloadUrl = getValidPresignedUrlForDownload(objectName);
+        return downloadFileWithPresign(downloadUrl.getUrl());
+    }
 }
