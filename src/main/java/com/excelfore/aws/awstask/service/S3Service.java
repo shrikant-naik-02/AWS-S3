@@ -31,7 +31,7 @@ public class S3Service {
 
 //    ------------------------------------------------------------------------------------------------------------------
 
-    public PresignedUrlResponse getValidPresignedUrlForUpload(MultipartFile file) {
+    private PresignedUrlResponse getValidPresignedUrlForUpload(MultipartFile file) {
         if (file.isEmpty() || file.getSize() == 0) {
             throw new EmptyFileException("File is null or empty");
         }
@@ -58,7 +58,7 @@ public class S3Service {
         return new PresignedUrlResponse("Upload", url, "5Min", true);
     }
 
-    public String uploadFileWithPresign(MultipartFile file, String presignedUrl) {
+    private String uploadFileWithPresign(MultipartFile file, String presignedUrl) {
         String currentFileHash = FileUtil.computeSHA256Hash(file);
         Map<String, String> urlData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
         final String shaKey = urlData.get("shaKey");
@@ -77,7 +77,7 @@ public class S3Service {
         return objName;
     }
 
-    public PresignedUrlResponse getValidPresignedUrlForDownload(String objectName) {
+    private PresignedUrlResponse getValidPresignedUrlForDownload(String objectName) {
         if (!commonAWSOp.doesObjectExists(objectName)) {
             log.debug("File Not Exist There With Name {}", objectName);
             throw new FileAlreadyExistsException("File Not Present There with name: " + objectName);
@@ -87,7 +87,7 @@ public class S3Service {
         return new PresignedUrlResponse("Download", url, "5Min", true);
     }
 
-    public byte[] downloadFileWithPresign(String presignedUrl) {
+    private byte[] downloadFileWithPresign(String presignedUrl) {
         Map<String, String> urlData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
         final String objName = urlData.get("objName");
 
