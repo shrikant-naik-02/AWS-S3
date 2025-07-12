@@ -20,7 +20,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class S3ServiceV2 {
+public class S3Service {
 
     private final S3Client s3Client;
     private final CommonAWSOp commonAWSOp;
