@@ -88,7 +88,7 @@ public class CommonAWSOp {
 
             if (statusCode == 403) {
                 log.warn("Presigned URL has expired or is invalid.");
-                throw new PresignedUrlExpiredException("Presigned URL has expired or was manipulated.");
+                throw new PresignedUrlExpiredException("Presigned URL has expired or is invalid.");
             }
 
             throw new RuntimeException("Upload failed. HTTP status: " + statusCode);
