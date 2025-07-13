@@ -39,18 +39,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
     }
 
-//    @ExceptionHandler(EmptyFileException.class)
-//    public ResponseEntity<ApiResponse<Object>> handleEmptyFile(EmptyFileException ex) {
-//        ApiResponse<Object> response = buildErrorResponse(ex);
-//        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(response);
-//    }
-
-    @ExceptionHandler(InvalidFileNameException.class)
-    public ResponseEntity<ApiResponse<Object>> handleInvalidFileName(InvalidFileNameException ex) {
-        ApiResponse<Object> response = buildErrorResponse(ex);
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(response);
-    }
-
     @ExceptionHandler(FileAlreadyExistsException.class)
     public ResponseEntity<ApiResponse<Object>> handleFileAlreadyExists(FileAlreadyExistsException ex) {
         ApiResponse<Object> response = buildErrorResponse(ex);
@@ -69,23 +57,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-//    @ExceptionHandler(HashAlgorithmNotFoundException.class)
-//    public ResponseEntity<ApiResponse<Object>> handleHashAlgorithmNotFound(HashAlgorithmNotFoundException ex) {
-//        ApiResponse<Object> response = buildErrorResponse(ex);
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-//    }
-
     @ExceptionHandler(PresignedUrlExpiredException.class)
     public ResponseEntity<ApiResponse<Object>> handlePresignedUrlExpired(PresignedUrlExpiredException ex) {
         ApiResponse<Object> response = buildErrorResponse(ex);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
-
-//    @ExceptionHandler(MultipleFileSelectionException.class)
-//    public ResponseEntity<ApiResponse<Object>> handleMultipleFileSelection(MultipleFileSelectionException ex) {
-//        ApiResponse<Object> response = buildErrorResponse(ex);
-//        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
-//    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception ex) {

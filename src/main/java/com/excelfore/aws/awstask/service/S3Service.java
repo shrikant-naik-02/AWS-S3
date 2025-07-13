@@ -34,14 +34,8 @@ public class S3Service {
 
     private String generatePresignedUrlForUpload(MultipartFile file) {
 
-
         if (file.getSize() > FileUtil.mbToBytes(1)) {
             throw new FileTooLargeException("File size exceeds 1MB limit");
-        }
-
-        String originalFileName = file.getOriginalFilename();
-        if (originalFileName == null || !FileUtil.isFileNameValid(originalFileName)) {
-            throw new InvalidFileNameException("Filename must contain at least one letter before the extension");
         }
 
         String fileHash = FileUtil.computeSHA256Hash(file);

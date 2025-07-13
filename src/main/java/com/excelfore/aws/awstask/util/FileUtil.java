@@ -28,12 +28,6 @@ public class FileUtil {
         return mb * 1024L * 1024L;
     }
 
-    public static boolean isFileNameValid(String originalFileName) {
-        int dotIndex = originalFileName.lastIndexOf('.');
-
-        return dotIndex > 0 && originalFileName.substring(0, dotIndex).matches(".*[a-zA-Z].*");
-    }
-
     public static String computeSHA256Hash(MultipartFile file) {
         try (InputStream inputStream = file.getInputStream()) {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -62,7 +56,6 @@ public class FileUtil {
             throw new RuntimeException("Failed to read uploaded file", e);
         }
     }
-
 
     public static Map<String, String> extractFolderShaKeyAndObjName(String presignedUrl) {
         URI uri = URI.create(presignedUrl);
