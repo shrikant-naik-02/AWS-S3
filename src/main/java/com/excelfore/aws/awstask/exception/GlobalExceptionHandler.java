@@ -39,11 +39,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @ExceptionHandler(HashMismatchException.class)
-    public ResponseEntity<ApiResponse<Object>> handleHashMismatchException(HashMismatchException ex) {
-        ApiResponse<Object> response = buildErrorResponse(ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
 
     @ExceptionHandler(PresignedUrlExpiredException.class)
     public ResponseEntity<ApiResponse<Object>> handlePresignedUrlExpired(PresignedUrlExpiredException ex) {

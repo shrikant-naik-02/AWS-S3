@@ -50,16 +50,10 @@ public class S3Service {
     }
 
     private String uploadFileWithPresignedUrl(MultipartFile file, String presignedUrl) {
-        String fileHash = FileUtil.computeSHA256Hash(file);
+
         Map<String, String> parsedData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
 
-        String expectedHash = parsedData.get("shaKey");
         String objectKey = parsedData.get("objName");
-
-        if (!fileHash.equalsIgnoreCase(expectedHash)) {
-            log.debug("Hash mismatch: expected {}, got {}", expectedHash, fileHash);
-            throw new HashMismatchException("Hash mismatch — please upload the original file used to generate the URL.");
-        }
 
         if (commonAWSOp.doesObjectExist(objectKey)) {
             throw new FileAlreadyExistsException("File already exists with key: " + objectKey);
