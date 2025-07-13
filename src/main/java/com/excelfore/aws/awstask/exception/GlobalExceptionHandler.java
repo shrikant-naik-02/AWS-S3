@@ -21,18 +21,6 @@ public class GlobalExceptionHandler {
         return new ApiResponse<>(ex.getClass().getSimpleName(), ex.getMessage());
     }
 
-    @ExceptionHandler(FileUploadException.class)
-    public ResponseEntity<ApiResponse<Object>> handleFileUploadException(FileUploadException ex) {
-        ApiResponse<Object> response = buildErrorResponse(ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
-
-    @ExceptionHandler(FileDownloadException.class)
-    public ResponseEntity<ApiResponse<Object>> handleFileDownloadException(FileDownloadException ex) {
-        ApiResponse<Object> response = buildErrorResponse(ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
-
     @ExceptionHandler(FileTooLargeException.class)
     public ResponseEntity<ApiResponse<Object>> handleFileTooLarge(FileTooLargeException ex) {
         ApiResponse<Object> response = buildErrorResponse(ex);
