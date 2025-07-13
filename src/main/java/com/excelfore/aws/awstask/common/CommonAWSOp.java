@@ -132,11 +132,11 @@ public class CommonAWSOp {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Download interrupted: {}", e.getMessage());
-            throw new RuntimeException("Download was interrupted", e);
+            throw new RuntimeException("Download interrupted", e);
 
         } catch (IOException e) {
             log.error("I/O error during download: {}", e.getMessage());
-            throw new RuntimeException("Download failed due to I/O error", e);
+            throw new RuntimeException("Network error while downloading", e);
         }
     }
 
@@ -146,15 +146,14 @@ public class CommonAWSOp {
                     .bucket(bucket)
                     .key(key)
                     .build());
-            return true;
-
-        } catch (NoSuchKeyException e) {
-            log.debug("Object not found: {} | StatusCode: {} | RequestId: {}", key, e.statusCode(), e.requestId());
-            return false;
-
+            return true; // Object exists
         } catch (S3Exception e) {
-            log.error("S3 error while checking object existence: {} | StatusCode: {} | RequestId: {}", e.awsErrorDetails().errorMessage(), e.statusCode(), e.requestId());
-            throw new RuntimeException("S3 error: " + e.awsErrorDetails().errorMessage());
+            int status = e.statusCode();
+            if (status == 404 || status == 403) {
+                return false; // Object not found or access denied
+            }
+            throw e; // Other unexpected errors
         }
     }
+
 }
