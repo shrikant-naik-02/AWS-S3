@@ -33,9 +33,7 @@ public class S3Service {
     // ---------------------------------------------------------------------------
 
     private String generatePresignedUrlForUpload(MultipartFile file) {
-        if (file.isEmpty() || file.getSize() == 0) {
-            throw new EmptyFileException("File is null or empty");
-        }
+
 
         if (file.getSize() > FileUtil.mbToBytes(1)) {
             throw new FileTooLargeException("File size exceeds 1MB limit");

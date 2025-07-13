@@ -1,6 +1,5 @@
 package com.excelfore.aws.awstask.common;
 
-import com.excelfore.aws.awstask.exception.EmptyFileException;
 import com.excelfore.aws.awstask.exception.PresignedUrlExpiredException;
 
 import lombok.RequiredArgsConstructor;
@@ -127,10 +126,6 @@ public class CommonAWSOp {
             }
 
             byte[] fileBytes = response.body();
-            if (fileBytes.length == 0) {
-                log.warn("Downloaded file is empty.");
-                throw new EmptyFileException("Downloaded file is empty.");
-            }
 
             return fileBytes;
 

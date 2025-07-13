@@ -1,6 +1,5 @@
 package com.excelfore.aws.awstask.util;
 
-import com.excelfore.aws.awstask.exception.HashAlgorithmNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,7 +15,6 @@ import java.util.Map;
 public class FileUtil {
 
     private FileUtil() {
-        // Prevent instantiation
         throw new AssertionError("Utility class - do not instantiate");
     }
 
@@ -57,7 +55,7 @@ public class FileUtil {
 
         } catch (NoSuchAlgorithmException e) {
             log.error("Hash algorithm not found: {}", e.getMessage());
-            throw new HashAlgorithmNotFoundException("SHA-256 algorithm not available");
+            throw new RuntimeException("Hashing Algorithm Not Found");
 
         } catch (IOException e) {
             log.error("IOException while reading file: {}", e.getMessage());
