@@ -55,10 +55,6 @@ public class S3Service {
 
         String objectKey = parsedData.get("objName");
 
-        if (commonAWSOp.doesObjectExist(objectKey)) {
-            throw new FileAlreadyExistsException("File already exists with key: " + objectKey);
-        }
-
         commonAWSOp.uploadFileWithPresignedUrl(file, presignedUrl);
         return objectKey;
     }
@@ -75,11 +71,6 @@ public class S3Service {
     private byte[] downloadFileWithPresignedUrl(String presignedUrl) {
         Map<String, String> parsedData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
         String objectKey = parsedData.get("objName");
-
-        if (!commonAWSOp.doesObjectExist(objectKey)) {
-            log.debug("File not found with key: {}", objectKey);
-            throw new NoSuchFilePresent("File not found with key: " + objectKey);
-        }
 
         return commonAWSOp.downloadFileWithPresignedUrl(presignedUrl);
     }
