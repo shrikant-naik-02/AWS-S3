@@ -70,8 +70,6 @@ public class S3Service {
 
     private byte[] downloadFileWithPresignedUrl(String presignedUrl) {
         Map<String, String> parsedData = FileUtil.extractFolderShaKeyAndObjName(presignedUrl);
-        String objectKey = parsedData.get("objName");
-
         return commonAWSOp.downloadFileWithPresignedUrl(presignedUrl);
     }
 }
