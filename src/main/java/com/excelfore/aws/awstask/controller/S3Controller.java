@@ -5,6 +5,9 @@ import com.excelfore.aws.awstask.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,9 +30,18 @@ public class S3Controller {
     }
 
     @GetMapping("/download")
-    public byte[] downloadFile(@RequestParam("objectName") String objectName) {
+    public ResponseEntity<byte[]> downloadFile(@RequestParam("objectName") String objectName) {
         log.debug("Downloading file: {}", objectName);
-        return s3Service.downloadFile(objectName);
+        byte[] fileBytes = s3Service.downloadFile(objectName);
+
+        String filename = objectName;
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileBytes.length))
+                .body(fileBytes);
     }
+
 
 }
